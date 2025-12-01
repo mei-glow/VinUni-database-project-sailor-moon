@@ -60,27 +60,27 @@ This system aims to provide a structured database foundation for real-time retai
 
 | Entity                    | Purpose                                          |
 |--------------------------:|:-------------------------------------------------|
-| `di_item`                 | Product master data                               |
-| `di_class`                | Product category                                  |
-| `di_department`           | Internal department managing categories           |
-| `di_locations`            | Retail stores & warehouses                        |
-| `di_customers`            | Customer profiles                                 |
-| `loyalty_level`           | Customer tiers for membership rewards             |
-| `di_employee`             | Employee master data                              |
-| `di_promotion`            | Promotion & discount programs                     |
-| `sa_salesorder`           | Sales order before fulfillment                    |
-| `sa_salesorder_item`      | Items included in a sales order                   |
-| `item_fulfillment`        | Order fulfillment & packing workflow              |
-| `item_fulfillment_item`   | Items handled during fulfillment                  |
-| `sa_sales`                | Completed sale record                             |
-| `sa_sales_item`           | Final items included in a completed sale          |
-| `di_ship_vendor`          | Third-party shipping vendors                      |
-| `di_delivery_method`      | Delivery types                                    |
-| `di_delivery_vehicle`     | Vehicles used for delivery                        |
-| `di_bonus_sales`          | Bonus rules for employee sales                    |
-| `di_delivery_bonus`       | Bonus rules for deliveries                        |
-| `warehouse_transfer`      | Transfer request between locations                |
-| `warehouse_transfer_item` | Items in a warehouse transfer                     |
+| `DI_ITEMS`                | Product master data                               |
+| `DI_CLASS`                | Product category                                  |
+| `DI_DEPARTMENT`           | Department managing employees                     |
+| `DI_LOCATIONS`            | Retail stores & warehouses                        |
+| `DI_CUSTOMERS`            | Customer profiles                                 |
+| `DI_LOYALTY_LEVEL`        | Customer tiers for membership rewards             |
+| `DI_EMPLOYEES`            | Employee master data                              |
+| `DI_PROMOTION`            | Promotion & discount programs                     |
+| `SA_SALEORDERS`           | Sales order before fulfillment                    |
+| `SA_SALEORDERS_ITEM`      | Items included in a sales order                   |
+| `ITEM_FULFILMENT`         | Order Delivery                                    |
+| `ITEM_FULFILMENT_ITEM`    | Order Delivery with Item                          |
+| `SA_SALES`                | Completed sale record                             |
+| `SA_SALES_ITEM`           | Sale record lines with item                       |
+| `DI_SHIPPING_VENDOR`      | Third-party shipping vendors                      |
+| `DI_DELIVERY_METHOD`      | Delivery types                                    |
+| `DI_DELIVERY_VEHICLES`    | Vehicles used for delivery                        |
+| `DI_BONUS_SALES`          | Bonus rules for employee sales                    |
+| `DI_DELIVERY_BONUS`       | Bonus rules for deliveries                        |
+| `DI_PAYMENT_METHOD`       | Payment methods of customers                      |
+| `WAREHOUSE_TRANSFER`      | Transfer requests between locations               |
 
 ---
 
@@ -93,11 +93,12 @@ This system aims to provide a structured database foundation for real-time retai
 
 ## Team Members & Roles
 
-| Name                 | Role                                      |
-|---------------------:|:------------------------------------------|
-| Tran Phuong Mai      | Team Lead / Database Architect / Frontend |
-| Do Phuong An         | Data Modeling / SQL Developer             |
-| Nguyen Khanh Ngoc    | Backend / API Developer                   |
+| Name              | Student ID | Role                                      |
+|------------------:|:-----------|:------------------------------------------|
+| Tran Phuong Mai   | V202401760 | Team Lead / Database Architect / Frontend |
+| Do Phuong An      |            | Data Modeling / SQL Developer             |
+| Nguyen Khanh Ngoc |            | Backend / API Developer                   |
+
 
 ---
 
