@@ -80,7 +80,6 @@ This system aims to provide a structured database foundation for real-time retai
 | `DI_BONUS_SALES`          | Bonus rules for employee sales                    |
 | `DI_DELIVERY_BONUS`       | Bonus rules for deliveries                        |
 | `DI_PAYMENT_METHOD`       | Payment methods of customers                      |
-| `WAREHOUSE_TRANSFER`      | Transfer requests between locations               |
 
 ---
 
