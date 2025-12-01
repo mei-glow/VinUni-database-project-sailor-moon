@@ -60,6 +60,7 @@ This system aims to provide a structured database foundation for real-time retai
 
 | Entity                    | Purpose                                          |
 |--------------------------:|:-------------------------------------------------|
+| `DI_CALENDAR`             | Time                             |
 | `DI_ITEMS`                | Product master data                               |
 | `DI_CLASS`                | Product category                                  |
 | `DI_DEPARTMENT`           | Department managing employees                     |
@@ -83,7 +84,8 @@ This system aims to provide a structured database foundation for real-time retai
 
 ## Database Draft Diagram
 
-<img width="3005" height="1873" alt="Blank diagram (3)" src="https://github.com/user-attachments/assets/c05d3c20-bbbc-433a-996a-ba63ef0b89a6" />
+<img width="3327" height="1873" alt="Blank diagram (5)" src="https://github.com/user-attachments/assets/d0bb1ad6-793d-45e5-ad31-c02c3ea1c0e2" />
+
 
 
 ---
