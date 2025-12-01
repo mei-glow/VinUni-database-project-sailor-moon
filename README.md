@@ -81,6 +81,11 @@ This system aims to provide a structured database foundation for real-time retai
 | `DI_DELIVERY_BONUS`       | Bonus rules for deliveries                        |
 | `DI_PAYMENT_METHOD`       | Payment methods of customers                      |
 
+## Database Draft Diagram
+
+<img width="3005" height="1873" alt="Blank diagram (3)" src="https://github.com/user-attachments/assets/c05d3c20-bbbc-433a-996a-ba63ef0b89a6" />
+
+
 ---
 
 ## Tech Stack
