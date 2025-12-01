@@ -1,19 +1,19 @@
 # VinUni-database-project-sailor-moon
-# OmniRetail Management System
-**A Unified System for Inventory, Ordering, Fulfillment & Delivery Operations**
+# VinRetail Management System
+**A all-in-one system for Inventory, Ordering, Fulfillment & Delivery Operations**
 
 ---
 
 ## Project Description
-OmniRetail is an integrated retail management system designed to handle the full operational workflow of a multi-store retail business.
+VinRetail is an integrated retail management system designed to manage the entire operational workflow of a multi-store retail business.
 
 The system solves key challenges such as:
 
 - Managing thousands of products across categories and departments  
 - Handling customer profiles, loyalty levels, and purchase behavior  
 - Processing sales orders from creation → fulfillment → delivery  
-- Tracking stock transfers between warehouses and stores  
-- Managing promotions, employee bonuses, and delivery performance
+- Monitoring stock transfers between warehouses and stores  
+- Managing promotions, employee rewards, and delivery performance
 
 This system aims to provide a structured database foundation for real-time retail operations.
 
@@ -96,7 +96,7 @@ This system aims to provide a structured database foundation for real-time retai
 | Name              | Student ID | Role                                      |
 |------------------:|:-----------|:------------------------------------------|
 | Tran Phuong Mai   | V202401760 | Team Lead / Database Architect / Frontend |
-| Do Phuong An      |            | Data Modeling / SQL Developer             |
+| Do Phuong An      | V202401391 | Data Modeling / SQL Developer             |
 | Nguyen Khanh Ngoc |            | Backend / API Developer                   |
 
 
