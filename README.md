@@ -84,7 +84,7 @@ This system aims to provide a structured database foundation for real-time retai
 
 ## Database Draft Diagram
 
-<img width="3327" height="1873" alt="Blank diagram (5)" src="https://github.com/user-attachments/assets/d0bb1ad6-793d-45e5-ad31-c02c3ea1c0e2" />
+<img width="3040" height="1873" alt="Blank diagram (6)" src="https://github.com/user-attachments/assets/5096f994-b352-4af1-ad8d-a8fc8f5ca558" />
 
 
 
