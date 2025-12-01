@@ -111,14 +111,4 @@ This system aims to provide a structured database foundation for real-time retai
 | Week 14 | Core Queries + Stored Procedures + Views               |
 | Week 15 | Application Demo + Final Documentation                 |
 
----
-
-## Repository Structure (Planned)
-
-/OmniRetail-DB
-│── README.md
-│── /docs          ← ERD diagrams, PDF report
-│── /sql           ← Create tables, constraints, indexes
-│── /sample_data   ← INSERT statements
-│── /app           ← Backend code (optional)
 
