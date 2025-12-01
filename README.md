@@ -103,7 +103,7 @@ This system aims to provide a structured database foundation for real-time retai
 |------------------:|:-----------|:------------------------------------------|
 | Tran Phuong Mai   | V202401760 | Team Lead / Database Architect / Frontend |
 | Do Phuong An      | V202401391 | Data Modeling / SQL Developer             |
-| Nguyen Khanh Ngoc |            | Backend / API Developer                   |
+| Nguyen Khanh Ngoc | V202401528 | Backend / API Developer                   |
 
 
 ---
