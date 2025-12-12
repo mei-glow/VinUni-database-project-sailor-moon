@@ -1,86 +1,106 @@
-# VinUni-database-project-sailor-moon
-# VinRetail Management System
-**A all-in-one system for Inventory, Ordering, Fulfillment & Delivery Operations**
+# VinUni Database Project – VinRetail Management System
+
+VinRetail is a database-centric retail management system designed to support end-to-end operations of a multi-store retail business.  
+The project focuses on robust relational database design, business rule enforcement at the database layer, and scalability for real-world retail workloads.
 
 ---
 
 ## Project Description
-VinRetail is an integrated retail management system designed to manage the entire operational workflow of a multi-store retail business.
 
-The system solves key challenges such as:
+VinRetail manages the full retail lifecycle, including:
 
-- Managing thousands of products across categories and departments  
-- Handling customer profiles, loyalty levels, and purchase behavior  
-- Processing sales orders from creation → fulfillment → delivery  
-- Monitoring stock transfers between warehouses and stores  
-- Managing promotions, employee rewards, and delivery performance
+- Product and inventory management across stores and warehouses  
+- Customer profiles, loyalty programs, and purchase behavior tracking  
+- Sales order creation, invoice processing, and returns handling  
+- Fulfillment, delivery, and stock transfers between locations  
+- Promotions, employee performance bonuses, and delivery incentives  
+- Audit logging for data governance and security  
 
-This system aims to provide a structured database foundation for real-time retail operations.
+The system is implemented using MySQL 8.x and is designed following normalization up to Third Normal Form (3NF).
 
 ---
 
 ## Functional Requirements
 
 ### 1. Product & Inventory Management
-- Store master data of items, categories, and departments  
-- Track inventory by warehouse/store location  
-- Manage stock transfers between locations
+- Maintain product master data, brands, and product classes  
+- Track inventory quantities per location  
+- Record inventory movements with a complete audit trail  
 
 ### 2. Customer & Loyalty Management
-- Maintain customer profiles  
-- Track loyalty level and reward eligibility
+- Store customer profiles and preferences  
+- Manage loyalty levels and loyalty points  
+- Automatically update loyalty points after purchases  
 
-### 3. Sales Order Processing
+### 3. Sales Order & Transaction Processing
 - Create and manage sales orders  
-- Add and manage order items  
-- Apply promotions
+- Apply promotions at item level  
+- Generate invoices and handle returns  
+- Calculate final amounts with VAT and rounding rules  
 
 ### 4. Fulfillment & Delivery
-- Assign shipping vendors and delivery methods  
-- Track delivery vehicles  
-- Manage packing and fulfillment workflows
+- Support order fulfillment, stock transfers, and customer returns  
+- Assign delivery vendors, vehicles, and delivery personnel  
+- Track delivery status changes throughout the delivery lifecycle  
 
-### 5. Sales & Performance Tracking
-- Record completed sales  
-- Apply employee sales bonuses  
-- Track delivery bonus performance
+### 5. Performance & Gamification
+- Track employee sales performance  
+- Apply sales bonus rules by product class or KPI  
+- Apply delivery bonus rules based on delivery volume and type  
 
 ---
 
 ## Non-Functional Requirements
-- **Reliability:** ACID-compliant transactions for sales and inventory updates  
-- **Scalability:** Support growth in stores, customers, and daily orders  
-- **Security:** Role-based access (employees, managers, warehouse operators)  
-- **Performance:** Optimized queries with indexing on large tables (sales, items)  
-- **Maintainability:** Clean modular database schema
+
+- Reliability: ACID-compliant transactions and referential integrity  
+- Scalability: Optimized indexing and partitioning strategies  
+- Security: Role-based access and audit logging  
+- Performance: Indexed transactional tables and derived reporting views  
+- Maintainability: Modular schema and centralized business logic  
 
 ---
 
-## Planned Core Entities
+## Core Database Entities
 
-| Entity                    | Purpose                                          |
-|--------------------------:|:-------------------------------------------------|
-| `DI_CALENDAR`             | Time                             |
-| `DI_ITEMS`                | Product master data                               |
-| `DI_CLASS`                | Product category                                  |
-| `DI_DEPARTMENT`           | Department managing employees                     |
-| `DI_LOCATIONS`            | Retail stores & warehouses                        |
-| `DI_CUSTOMERS`            | Customer profiles                                 |
-| `DI_LOYALTY_LEVEL`        | Customer tiers for membership rewards             |
-| `DI_EMPLOYEES`            | Employee master data                              |
-| `DI_PROMOTION`            | Promotion & discount programs                     |
-| `SA_SALEORDERS`           | Sales order before fulfillment                    |
-| `SA_SALEORDERS_ITEM`      | Items included in a sales order                   |
-| `ITEM_FULFILMENT`         | Order Delivery                                    |
-| `ITEM_FULFILMENT_ITEM`    | Order Delivery with Item                          |
-| `SA_SALES`                | Completed sale record                             |
-| `SA_SALES_ITEM`           | Sale record lines with item                       |
-| `DI_SHIPPING_VENDOR`      | Third-party shipping vendors                      |
-| `DI_DELIVERY_METHOD`      | Delivery types                                    |
-| `DI_DELIVERY_VEHICLES`    | Vehicles used for delivery                        |
-| `DI_BONUS_SALES`          | Bonus rules for employee sales                    |
-| `DI_DELIVERY_BONUS`       | Bonus rules for deliveries                        |
-| `DI_PAYMENT_METHOD`       | Payment methods of customers                      |
+### Master Data
+- departments  
+- locations  
+- brands  
+- product_class  
+- products  
+- customers  
+- customer_preferences  
+- loyalty_levels  
+- employees  
+- payment_methods  
+
+### Inventory & Audit
+- inventory  
+- inventory_history  
+
+### Sales & Transactions
+- sales_orders  
+- sales_order_items  
+- sales  
+- sales_items  
+
+### Promotions
+- promotions  
+- promotions_campaigns  
+
+### Delivery & Fulfillment
+- delivery_vendors  
+- delivery_vehicles  
+- deliveries  
+- delivery_status_history  
+
+### Performance & Governance
+- employee_bonus_rules  
+- delivery_bonus_rules  
+- customer_loyalty  
+- audit_logs  
+
+---
 
 ## Database Draft Diagram
 
