@@ -108,7 +108,7 @@ JOIN permissions p ON p.permission_code IN (
     'DASHBOARD_INVENTORY_VIEW'
 )
 WHERE r.role_name = 'WAREHOUSE';
-------------- HR
+-- ---------- HR
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.role_id, p.permission_id
 FROM roles r
@@ -135,15 +135,6 @@ JOIN permissions p ON p.permission_code IN (
 )
 WHERE r.role_name = 'DELIVERY';
 
--- ---------- HR
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.role_id, p.permission_id
-FROM roles r
-JOIN permissions p ON p.permission_code IN (
-    'USER_VIEW',
-    'DASHBOARD_HR_VIEW'
-)
-WHERE r.role_name = 'HR';
 
 -- ---------- MANAGER
 INSERT INTO role_permissions (role_id, permission_id)

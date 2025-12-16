@@ -1,6 +1,6 @@
 -- =====================================================
 -- VinRetail Sample Data for Analytics
--- File: sample_data.sql
+-- File: 03_sample_data.sql
 -- Description: Comprehensive sample data for testing and analytics
 -- Note: Excludes users, roles, permissions (handled in rbac.sql)
 -- =====================================================

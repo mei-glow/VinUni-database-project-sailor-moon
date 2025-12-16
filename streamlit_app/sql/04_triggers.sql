@@ -5,12 +5,9 @@
 -- Run AFTER: DDL, RBAC, sample_data
 -- =====================================================
 
-USE vinretail;
-
 -- =====================================================
 -- TRIGGER 1: Calculate final_amount for Sales Order Items
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_calculate_order_item_amount;
 
 CREATE TRIGGER trg_calculate_order_item_amount
 BEFORE INSERT ON sales_order_items
@@ -59,17 +56,21 @@ END;
 -- =====================================================
 -- TRIGGER 2: Calculate final_amount for Sales Items
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_calculate_sale_item_amount;
+
 
 CREATE TRIGGER trg_calculate_sale_item_amount
 BEFORE INSERT ON sales_items
 FOR EACH ROW
 BEGIN
     DECLARE v_unit_price DECIMAL(12,2);
+    DECLARE v_discount_percent DECIMAL(5,2) DEFAULT 0;
+    DECLARE v_discount_value DECIMAL(10,2) DEFAULT 0;
     DECLARE v_base_amount DECIMAL(12,2);
     DECLARE v_discount_amount DECIMAL(12,2) DEFAULT 0;
     DECLARE v_abs_quantity INT;
+    DECLARE v_final_amount DECIMAL(12,2);
 
+    -- 1. Get unit price
     SELECT unit_price INTO v_unit_price
     FROM products
     WHERE product_id = NEW.product_id;
@@ -79,20 +80,46 @@ BEGIN
         SET MESSAGE_TEXT = 'Product not found or has no price';
     END IF;
 
+    -- 2. Base amount (absolute quantity)
     SET v_abs_quantity = ABS(NEW.quantity);
     SET v_base_amount = v_unit_price * v_abs_quantity;
 
+    -- 3. Apply promotion (same logic as sales_order_items)
+    IF NEW.applied_promotion_id IS NOT NULL THEN
+        SELECT
+            COALESCE(discount_percent, 0),
+            COALESCE(discount_value, 0)
+        INTO v_discount_percent, v_discount_value
+        FROM promotions
+        WHERE promotion_id = NEW.applied_promotion_id
+          AND status = 'ACTIVE';
+
+        IF v_discount_percent > 0 THEN
+            SET v_discount_amount = v_base_amount * v_discount_percent / 100;
+        ELSEIF v_discount_value > 0 THEN
+            SET v_discount_amount = v_discount_value;
+        END IF;
+    END IF;
+
+    -- 4. Apply VAT 10%
+    SET v_final_amount = ROUND((v_base_amount - v_discount_amount) * 1.10, 0);
+
+    -- 5. Prevent negative magnitude
+    IF v_final_amount < 0 THEN
+        SET v_final_amount = 0;
+    END IF;
+
+    -- 6. Handle RETURN vs INVOICE
     IF NEW.sale_type = 'RETURN' THEN
-        SET NEW.final_amount = -ROUND(v_base_amount * 1.10, 0);
+        SET NEW.final_amount = -v_final_amount;
     ELSE
-        SET NEW.final_amount = ROUND(v_base_amount * 1.10, 0);
+        SET NEW.final_amount = v_final_amount;
     END IF;
 END;
 
 -- =====================================================
 -- TRIGGER 3: Update Sales Total
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_update_sales_total_after_insert;
 
 CREATE TRIGGER trg_update_sales_total_after_insert
 AFTER INSERT ON sales_items
@@ -110,7 +137,6 @@ END;
 -- =====================================================
 -- TRIGGER 4: Global Inventory Deduction + Correct Returns
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_update_inventory_after_sale;
 
 CREATE TRIGGER trg_update_inventory_after_sale
 AFTER INSERT ON sales_items
@@ -203,35 +229,10 @@ BEGIN
     END IF;
 END;
 
--- =====================================================
--- TRIGGER 5: Global Inventory Check
--- =====================================================
-DROP TRIGGER IF EXISTS trg_check_inventory_before_sale;
-
-CREATE TRIGGER trg_check_inventory_before_sale
-BEFORE INSERT ON sales_items
-FOR EACH ROW
-BEGIN
-    DECLARE v_available_qty INT;
-
-    IF NEW.sale_type = 'INVOICE' AND NEW.quantity > 0 THEN
-        SELECT COALESCE(SUM(quantity), 0)
-        INTO v_available_qty
-        FROM inventory
-        WHERE product_id = NEW.product_id;
-
-        IF v_available_qty < NEW.quantity THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Insufficient inventory for this product (global stock)';
-        END IF;
-    END IF;
-END;
-
 
 -- =====================================================
 -- TRIGGER 5: Prevent Negative Inventory
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_check_inventory_before_sale;
 
 CREATE TRIGGER trg_check_inventory_before_sale
 BEFORE INSERT ON sales_items
@@ -261,7 +262,6 @@ END;
 -- =====================================================
 -- TRIGGER 6: Update Customer Loyalty Points
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_update_loyalty_after_sale;
 
 CREATE TRIGGER trg_update_loyalty_after_sale
 AFTER INSERT ON sales
@@ -317,7 +317,6 @@ END;
 -- =====================================================
 -- TRIGGER 7: Audit Sales Order Item Changes
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_audit_order_item_insert;
 
 CREATE TRIGGER trg_audit_order_item_insert
 AFTER INSERT ON sales_order_items
@@ -348,7 +347,6 @@ END;
 -- =====================================================
 -- TRIGGER 8: Audit Product Creation
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_audit_product_insert;
 
 CREATE TRIGGER trg_audit_product_insert
 AFTER INSERT ON products
@@ -379,7 +377,6 @@ END;
 -- =====================================================
 -- TRIGGER 9: Audit Employee Creation
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_audit_employee_insert;
 
 CREATE TRIGGER trg_audit_employee_insert
 AFTER INSERT ON employees
@@ -410,7 +407,6 @@ END;
 -- =====================================================
 -- TRIGGER 10: Track Delivery Status Changes
 -- =====================================================
-DROP TRIGGER IF EXISTS trg_track_delivery_status;
 
 CREATE TRIGGER trg_track_delivery_status
 AFTER UPDATE ON deliveries

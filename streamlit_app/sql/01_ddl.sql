@@ -26,7 +26,7 @@ CREATE TABLE departments (
         ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- brands
+-- brandschk_sales_item_type
 CREATE TABLE brands (
     brand_id INT AUTO_INCREMENT PRIMARY KEY,
     brand_name VARCHAR(100) NOT NULL UNIQUE
@@ -316,9 +316,9 @@ CREATE TABLE sales_items (
     -- Logical constraints
     CONSTRAINT chk_sales_item_type
         CHECK (
-            (sale_type = 'INVOICE' AND quantity > 0 AND final_amount > 0)
+            (sale_type = 'INVOICE' AND quantity >= 0 AND final_amount >= 0)
             OR
-            (sale_type = 'RETURN' AND quantity < 0 AND final_amount < 0)
+            (sale_type = 'RETURN' AND quantity <= 0 AND final_amount <= 0)
         )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

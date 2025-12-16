@@ -1,7 +1,7 @@
 import os
 from sqlalchemy import text
 from passlib.context import CryptContext
-from app.db.session import engine
+from config.session import engine
 from dotenv import load_dotenv
 
 load_dotenv()
