@@ -17,6 +17,7 @@
 
 # config/config.py
 import os
+from urllib.parse import quote_plus
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
@@ -28,11 +29,14 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
+# URL-encode password to handle special characters like @
+DB_PASSWORD_ENCODED = quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
+
 # --------------------------------------------------
 # Server-level engine (NO database)
 # --------------------------------------------------
 SERVER_DATABASE_URL = (
-    f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}"
+    f"mysql+pymysql://{DB_USER}:{DB_PASSWORD_ENCODED}"
     f"@{DB_HOST}:{DB_PORT}/"
 )
 
@@ -40,7 +44,7 @@ SERVER_DATABASE_URL = (
 # App-level database URL
 # --------------------------------------------------
 DATABASE_URL = (
-    f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}"
+    f"mysql+pymysql://{DB_USER}:{DB_PASSWORD_ENCODED}"
     f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
