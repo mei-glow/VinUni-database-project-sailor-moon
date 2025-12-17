@@ -6,10 +6,6 @@ from utils.auth import authenticate_user, is_authenticated, logout
 # ============================================================
 # DATABASE INITIALIZATION WITH SMART LOADING SCREEN
 # ============================================================
-import atexit
-from config.session import dispose_all_connections
-atexit.register(dispose_all_connections)
-
 
 # Page config
 st.set_page_config(
@@ -19,21 +15,34 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+import atexit
+from config.session import dispose_all_connections
+
+if not st.session_state.get("_cleanup_registered", False):
+    atexit.register(dispose_all_connections)
+    st.session_state["_cleanup_registered"] = True
+
 def check_database_exists():
     """Quick check if database is already initialized"""
     try:
-        from config.session import engine
+        from config.session import get_db_connection
         from sqlalchemy import text
-        
-        with engine.connect() as conn:
-            result = conn.execute(text(
+
+        db = get_db_connection()
+        try:
+            result = db.execute(text(
                 "SELECT COUNT(*) FROM information_schema.tables "
                 "WHERE table_schema = DATABASE() AND table_name = 'users'"
             )).scalar()
             return result > 0
+        finally:
+            db.close()
     except:
         return False
 
+@st.cache_data(ttl=10)
+def check_database_exists_cached():
+    return check_database_exists()
 
 def show_init_loading_screen():
     """Display full-screen loading overlay during database initialization"""
@@ -330,8 +339,9 @@ def initialize_database():
             
         else:
             loading_placeholder.empty()
-            show_error_screen("Database initialization returned False. Check console logs for details.")
+            # show_error_screen("Database initialization returned False. Check console logs for details.")
             show_error_screen(msg)
+            print(msg)
     except Exception as e:
         loading_placeholder.empty()
         error_msg = f"Exception: {str(e)}\n\nType: {type(e).__name__}"
@@ -344,7 +354,7 @@ def initialize_database():
 
 if 'db_initialized' not in st.session_state:
     # Quick check: if database already exists, skip loading screen
-    if check_database_exists():
+    if check_database_exists_cached():
         # Database already exists - skip loading, go straight to login
         st.session_state.db_initialized = True
         st.session_state.db_skip_init = True
@@ -441,6 +451,7 @@ def main_app():
             "Go to",
             [
                 "🏠 Dashboard",
+                "🛒 Sales Operations",
                 "👥 Users",
                 "👨‍💼 Employees",
                 "📍 Locations",
@@ -463,6 +474,9 @@ def main_app():
     elif page == "👥 Users":
         import pages.users as users
         users.show()
+    elif page == "🛒 Sales Operations":
+        import pages.sales_operations as sales_operations
+        sales_operations.show()
     elif page == "👨‍💼 Employees":
         import pages.employees as employees
         employees.show()

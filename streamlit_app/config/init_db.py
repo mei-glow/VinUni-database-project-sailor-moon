@@ -61,6 +61,26 @@ def run_triggers(path: Path):
 
             sql = part + "\nEND;"
             conn.exec_driver_sql(sql)
+def run_procedures(path: Path):
+    raw = path.read_text(encoding="utf-8")
+
+    # remove comments
+    raw = re.sub(r"/\*.*?\*/", "", raw, flags=re.S)
+    raw = re.sub(r"^\s*--.*$", "", raw, flags=re.M)
+
+    # split by END;
+    parts = re.split(r"\bEND\s*;\s*", raw, flags=re.I)
+
+    with engine.begin() as conn:
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            if "CREATE PROCEDURE" not in part.upper():
+                continue
+
+            sql = part + "\nEND;"
+            conn.exec_driver_sql(sql)
 
 
 # =========================
@@ -84,6 +104,8 @@ def init_db():
 
         run_plain_sql(SQL_DIR / "05_generate_tran_data.sql")
         # run_plain_sql(SQL_DIR / "06_views.sql")
+
+        run_procedures(SQL_DIR / "07_stored_procedures.sql")
 
         create_admin_if_not_exists()
 
