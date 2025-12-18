@@ -379,6 +379,23 @@ load_css()
 def login_page():
     """Display login page"""
     st.markdown("""
+        <style>
+        .login-container {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .login-header h1 {
+            color: #667eea !important;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        .login-header p {
+            color: #94a3b8 !important;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        </style>
         <div class="login-container">
             <div class="login-header">
                 <h1>🏪 VinRetail</h1>
