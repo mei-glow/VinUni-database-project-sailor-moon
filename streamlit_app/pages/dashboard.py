@@ -1,270 +1,255 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from sqlalchemy import text
+from datetime import datetime, timedelta
 from config.session import get_db_connection
 
 def show():
-    """Display dashboard with KPIs and charts"""
+    """Display lightweight dashboard with essential KPIs"""
     
     st.markdown("""
         <div class="main-header">
             <h1>🏠 Dashboard</h1>
-            <p>Real-time business insights and key performance indicators</p>
+            <p>Quick overview of key metrics</p>
         </div>
     """, unsafe_allow_html=True)
     
-    # Fetch KPIs
     db = get_db_connection()
     
     try:
-        # KPI Metrics
+        # Quick date filter
+        col1, col2, col3 = st.columns([2, 2, 1])
+        with col1:
+            days_back = st.selectbox("Time Period", [7, 30, 90, 365], index=1, format_func=lambda x: f"Last {x} days")
+        with col2:
+            st.write("")  # Spacer
+        with col3:
+            if st.button("🔄 Refresh"):
+                st.rerun()
+        
+        start_date = datetime.now() - timedelta(days=days_back)
+        
+        st.markdown("---")
+        
+        # =====================================================
+        # KPI CARDS - Simple metrics
+        # =====================================================
+        
         kpi_query = text("""
             SELECT 
-                COUNT(DISTINCT s.sale_id) as total_sales,
+                COUNT(DISTINCT s.sale_id) as total_orders,
                 COALESCE(SUM(s.total_amount), 0) as total_revenue,
-                COUNT(DISTINCT p.product_id) as total_products,
-                COUNT(DISTINCT c.customer_id) as total_customers,
-                COUNT(DISTINCT e.employee_id) as total_employees,
-                COUNT(DISTINCT l.location_id) as total_locations
+                COUNT(DISTINCT so.customer_id) as total_customers,
+                COALESCE(AVG(s.total_amount), 0) as avg_order_value
             FROM sales s
-            CROSS JOIN products p
-            CROSS JOIN customers c
-            CROSS JOIN employees e
-            CROSS JOIN locations l
+            JOIN sales_orders so ON s.order_id = so.order_id
             WHERE s.sale_type = 'INVOICE'
+                AND s.sale_date >= :start_date
         """)
         
-        kpi_data = db.execute(kpi_query).fetchone()
+        kpi = db.execute(kpi_query, {"start_date": start_date}).fetchone()
         
-        # Display KPIs
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.markdown("""
-                <div class="metric-card">
-                    <h3 style="color: #667eea; margin: 0;">💰 Total Revenue</h3>
-                    <h2 style="margin: 0.5rem 0;">{:,.0f} VND</h2>
-                    <p style="color: #6c757d; margin: 0;">Total sales amount</p>
-                </div>
-            """.format(kpi_data.total_revenue), unsafe_allow_html=True)
+            st.metric(
+                label="💰 Total Revenue",
+                value=f"{kpi.total_revenue:,.0f} VND"
+            )
         
         with col2:
-            st.markdown("""
-                <div class="metric-card">
-                    <h3 style="color: #28a745; margin: 0;">🛒 Total Sales</h3>
-                    <h2 style="margin: 0.5rem 0;">{:,}</h2>
-                    <p style="color: #6c757d; margin: 0;">Completed transactions</p>
-                </div>
-            """.format(kpi_data.total_sales), unsafe_allow_html=True)
+            st.metric(
+                label="🛒 Total Orders",
+                value=f"{kpi.total_orders:,}"
+            )
         
         with col3:
-            st.markdown("""
-                <div class="metric-card">
-                    <h3 style="color: #17a2b8; margin: 0;">📦 Products</h3>
-                    <h2 style="margin: 0.5rem 0;">{:,}</h2>
-                    <p style="color: #6c757d; margin: 0;">Active products</p>
-                </div>
-            """.format(kpi_data.total_products), unsafe_allow_html=True)
+            st.metric(
+                label="👥 Customers",
+                value=f"{kpi.total_customers:,}"
+            )
         
         with col4:
-            st.markdown("""
-                <div class="metric-card">
-                    <h3 style="color: #ffc107; margin: 0;">👥 Customers</h3>
-                    <h2 style="margin: 0.5rem 0;">{:,}</h2>
-                    <p style="color: #6c757d; margin: 0;">Total customers</p>
-                </div>
-            """.format(kpi_data.total_customers), unsafe_allow_html=True)
+            st.metric(
+                label="📊 Avg Order",
+                value=f"{kpi.avg_order_value:,.0f} VND"
+            )
         
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("---")
         
-        # Charts Section
+        # =====================================================
+        # CHARTS - 2x2 Grid
+        # =====================================================
+        
         col1, col2 = st.columns(2)
         
+        # Chart 1: Daily Sales Trend
         with col1:
-            st.markdown("### 📊 Sales by Month")
+            st.markdown("### 📈 Daily Sales")
             
-            sales_by_month_query = text("""
+            trend_query = text("""
                 SELECT 
-                    DATE_FORMAT(sale_date, '%Y-%m') as month,
-                    COUNT(*) as total_sales,
+                    DATE(sale_date) as date,
+                    COUNT(*) as orders,
                     SUM(total_amount) as revenue
                 FROM sales
                 WHERE sale_type = 'INVOICE'
-                GROUP BY DATE_FORMAT(sale_date, '%Y-%m')
-                ORDER BY month DESC
-                LIMIT 12
+                    AND sale_date >= :start_date
+                GROUP BY DATE(sale_date)
+                ORDER BY date
             """)
             
-            result = db.execute(sales_by_month_query).fetchall()
-            sales_data = pd.DataFrame(result, columns=['month', 'total_sales', 'revenue'])
+            result = db.execute(trend_query, {"start_date": start_date}).fetchall()
+            df = pd.DataFrame(result, columns=['date', 'orders', 'revenue'])
             
-            if not sales_data.empty:
-                sales_data['total_sales'] = pd.to_numeric(sales_data['total_sales'], errors='coerce').fillna(0).astype(int)
-                sales_data['revenue'] = pd.to_numeric(sales_data['revenue'], errors='coerce').fillna(0)
-            
-            if not sales_data.empty:
-                fig = px.bar(
-                    sales_data,
-                    x='month',
+            if not df.empty:
+                df['revenue'] = pd.to_numeric(df['revenue'], errors='coerce')
+                
+                fig = px.line(
+                    df,
+                    x='date',
                     y='revenue',
-                    title='Monthly Revenue',
-                    labels={'month': 'Month', 'revenue': 'Revenue (VND)'},
-                    color='revenue',
-                    color_continuous_scale='Viridis'
+                    markers=True,
+                    labels={'date': 'Date', 'revenue': 'Revenue (VND)'}
                 )
-                fig.update_layout(
-                    showlegend=False,
-                    height=400,
-                    xaxis_title="Month",
-                    yaxis_title="Revenue (VND)"
-                )
+                fig.update_layout(height=300, showlegend=False, margin=dict(l=0, r=0, t=10, b=0))
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No sales data available")
+                st.info("No data")
         
+        # Chart 2: Top 5 Products
         with col2:
-            st.markdown("### 🏪 Sales by Location")
+            st.markdown("### 🔥 Top 5 Products")
             
-            sales_by_location_query = text("""
+            products_query = text("""
                 SELECT 
-                    l.location_name,
-                    COUNT(s.sale_id) as total_sales,
+                    p.product_name,
+                    SUM(si.final_amount) as revenue
+                FROM sales_items si
+                JOIN products p ON si.product_id = p.product_id
+                JOIN sales s ON si.sale_id = s.sale_id
+                WHERE s.sale_type = 'INVOICE'
+                    AND s.sale_date >= :start_date
+                GROUP BY p.product_id, p.product_name
+                ORDER BY revenue DESC
+                LIMIT 5
+            """)
+            
+            result = db.execute(products_query, {"start_date": start_date}).fetchall()
+            df = pd.DataFrame(result, columns=['product_name', 'revenue'])
+            
+            if not df.empty:
+                df['revenue'] = pd.to_numeric(df['revenue'], errors='coerce')
+                
+                fig = px.bar(
+                    df,
+                    y='product_name',
+                    x='revenue',
+                    orientation='h',
+                    labels={'product_name': '', 'revenue': 'Revenue (VND)'},
+                    color='revenue',
+                    color_continuous_scale='Blues'
+                )
+                fig.update_layout(height=300, showlegend=False, margin=dict(l=0, r=0, t=10, b=0))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No data")
+        
+        # Chart 3: Sales by Region
+        with col1:
+            st.markdown("### 🌍 Sales by Region")
+            
+            region_query = text("""
+                SELECT 
+                    l.region,
+                    COUNT(s.sale_id) as orders,
                     SUM(s.total_amount) as revenue
                 FROM sales s
                 JOIN sales_orders so ON s.order_id = so.order_id
                 JOIN locations l ON so.location_id = l.location_id
                 WHERE s.sale_type = 'INVOICE'
-                GROUP BY l.location_id, l.location_name
-                ORDER BY revenue DESC
-                LIMIT 10
+                    AND s.sale_date >= :start_date
+                    AND l.region IS NOT NULL
+                GROUP BY l.region
             """)
             
-            result = db.execute(sales_by_location_query).fetchall()
-            location_data = pd.DataFrame(result, columns=['location_name', 'total_sales', 'revenue'])
+            result = db.execute(region_query, {"start_date": start_date}).fetchall()
+            df = pd.DataFrame(result, columns=['region', 'orders', 'revenue'])
             
-            if not location_data.empty:
-                location_data['total_sales'] = pd.to_numeric(location_data['total_sales'], errors='coerce').fillna(0).astype(int)
-                location_data['revenue'] = pd.to_numeric(location_data['revenue'], errors='coerce').fillna(0)
-            
-            if not location_data.empty:
+            if not df.empty:
+                df['revenue'] = pd.to_numeric(df['revenue'], errors='coerce')
+                
                 fig = px.pie(
-                    location_data,
+                    df,
                     values='revenue',
-                    names='location_name',
-                    title='Revenue Distribution by Location',
-                    hole=0.4
+                    names='region',
+                    hole=0.4,
+                    color_discrete_sequence=['#667eea', '#48bb78']
                 )
-                fig.update_layout(height=400)
+                fig.update_layout(height=300, showlegend=True, margin=dict(l=0, r=0, t=10, b=0))
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No location data available")
+                st.info("No data")
         
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # Top Products
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("### 🔥 Top 10 Products by Sales")
-            
-            top_products_query = text("""
-                SELECT 
-                    p.product_name,
-                    SUM(si.quantity) as total_quantity,
-                    SUM(si.final_amount) as total_revenue
-                FROM sales_items si
-                JOIN products p ON si.product_id = p.product_id
-                JOIN sales s ON si.sale_id = s.sale_id
-                WHERE s.sale_type = 'INVOICE'
-                GROUP BY p.product_id, p.product_name
-                ORDER BY total_revenue DESC
-                LIMIT 10
-            """)
-            
-            result = db.execute(top_products_query).fetchall()
-            top_products = pd.DataFrame(result, columns=['product_name', 'total_quantity', 'total_revenue'])
-            
-            if not top_products.empty:
-                top_products['total_quantity'] = pd.to_numeric(top_products['total_quantity'], errors='coerce').fillna(0).astype(int)
-                top_products['total_revenue'] = pd.to_numeric(top_products['total_revenue'], errors='coerce').fillna(0)
-            
-            if not top_products.empty:
-                fig = px.bar(
-                    top_products,
-                    x='total_revenue',
-                    y='product_name',
-                    orientation='h',
-                    title='Top 10 Products by Revenue',
-                    labels={'total_revenue': 'Revenue (VND)', 'product_name': 'Product'},
-                    color='total_revenue',
-                    color_continuous_scale='Blues'
-                )
-                fig.update_layout(
-                    showlegend=False,
-                    height=400,
-                    yaxis={'categoryorder': 'total ascending'}
-                )
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("No product data available")
-        
+        # Chart 4: Delivery Status
         with col2:
             st.markdown("### 🚚 Delivery Status")
             
-            delivery_status_query = text("""
+            delivery_query = text("""
                 SELECT 
                     delivery_status,
                     COUNT(*) as count
                 FROM deliveries
+                WHERE created_at >= :start_date
                 GROUP BY delivery_status
             """)
             
-            result = db.execute(delivery_status_query).fetchall()
-            delivery_data = pd.DataFrame(result, columns=['delivery_status', 'count'])
+            result = db.execute(delivery_query, {"start_date": start_date}).fetchall()
+            df = pd.DataFrame(result, columns=['delivery_status', 'count'])
             
-            if not delivery_data.empty:
-                delivery_data['count'] = pd.to_numeric(delivery_data['count'], errors='coerce').fillna(0).astype(int)
-            
-            if not delivery_data.empty:
-                colors = {
+            if not df.empty:
+                df['count'] = pd.to_numeric(df['count'], errors='coerce')
+                
+                # Color mapping
+                color_map = {
                     'DELIVERED': '#28a745',
                     'SHIPPED': '#17a2b8',
-                    'PENDING': '#ffc107',
-                    'CANCELLED': '#dc3545'
+                    'PACKED': '#ffc107',
+                    'CREATED': '#6c757d',
+                    'FAILED': '#dc3545'
                 }
+                df['color'] = df['delivery_status'].map(color_map)
                 
-                fig = go.Figure(data=[go.Pie(
-                    labels=delivery_data['delivery_status'],
-                    values=delivery_data['count'],
+                fig = px.pie(
+                    df,
+                    values='count',
+                    names='delivery_status',
                     hole=0.4,
-                    marker_colors=[colors.get(status, '#6c757d') for status in delivery_data['delivery_status']]
-                )])
-                
-                fig.update_layout(
-                    title='Delivery Status Distribution',
-                    height=400
+                    color='delivery_status',
+                    color_discrete_map=color_map
                 )
+                fig.update_layout(height=300, showlegend=True, margin=dict(l=0, r=0, t=10, b=0))
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No delivery data available")
+                st.info("No data")
         
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("---")
         
-        # Recent Sales Table
-        st.markdown("### 📋 Recent Sales")
+        # =====================================================
+        # RECENT ACTIVITY - Compact table
+        # =====================================================
         
-        recent_sales_query = text("""
+        st.markdown("### 📋 Recent Orders (Last 10)")
+        
+        recent_query = text("""
             SELECT 
                 s.sale_id,
-                s.sale_date,
-                c.first_name,
-                c.last_name,
+                DATE_FORMAT(s.sale_date, '%Y-%m-%d %H:%i') as sale_date,
+                CONCAT(c.first_name, ' ', c.last_name) as customer,
                 l.location_name,
                 s.total_amount,
-                s.invoice_status,
-                pm.method_name as payment_method
+                pm.method_name
             FROM sales s
             JOIN sales_orders so ON s.order_id = so.order_id
             JOIN customers c ON so.customer_id = c.customer_id
@@ -272,47 +257,68 @@ def show():
             LEFT JOIN payment_methods pm ON s.payment_method_id = pm.payment_method_id
             WHERE s.sale_type = 'INVOICE'
             ORDER BY s.sale_date DESC
-            LIMIT 20
+            LIMIT 10
         """)
         
-        result = db.execute(recent_sales_query).fetchall()
-        recent_sales = pd.DataFrame(result, columns=[
-            'sale_id', 'sale_date', 'first_name', 'last_name', 'location_name',
-            'total_amount', 'invoice_status', 'payment_method'
+        result = db.execute(recent_query).fetchall()
+        df = pd.DataFrame(result, columns=[
+            'sale_id', 'sale_date', 'customer', 'location_name', 'total_amount', 'method_name'
         ])
         
-        if not recent_sales.empty:
-            recent_sales['total_amount'] = pd.to_numeric(recent_sales['total_amount'], errors='coerce').fillna(0)
-            recent_sales['customer_name'] = recent_sales['first_name'] + ' ' + recent_sales['last_name']
-            recent_sales['total_amount'] = recent_sales['total_amount'].apply(lambda x: f"{x:,.0f} VND")
-            
-            display_df = recent_sales[[
-                'sale_id', 'sale_date', 'customer_name', 'location_name',
-                'total_amount', 'payment_method', 'invoice_status'
-            ]]
+        if not df.empty:
+            df['total_amount'] = pd.to_numeric(df['total_amount'], errors='coerce')
+            df['amount_display'] = df['total_amount'].apply(lambda x: f"{x:,.0f} VND")
             
             st.dataframe(
-                display_df,
+                df[['sale_id', 'sale_date', 'customer', 'location_name', 'amount_display', 'method_name']],
                 use_container_width=True,
                 hide_index=True,
                 column_config={
-                    "sale_id": "Sale ID",
-                    "sale_date": "Date",
-                    "customer_name": "Customer",
-                    "location_name": "Location",
-                    "total_amount": "Amount",
-                    "payment_method": "Payment",
-                    "invoice_status": st.column_config.TextColumn(
-                        "Status",
-                        help="Invoice payment status"
-                    )
+                    "sale_id": st.column_config.NumberColumn("ID", width="small"),
+                    "sale_date": st.column_config.TextColumn("Date", width="medium"),
+                    "customer": st.column_config.TextColumn("Customer", width="medium"),
+                    "location_name": st.column_config.TextColumn("Location", width="medium"),
+                    "amount_display": st.column_config.TextColumn("Amount", width="medium"),
+                    "method_name": st.column_config.TextColumn("Payment", width="small")
                 }
             )
         else:
-            st.info("No recent sales data available")
+            st.info("No recent orders")
         
+        # Quick stats row at bottom
+        st.markdown("---")
+        st.markdown("### 📊 Quick Stats")
+        
+        stats_query = text("""
+            SELECT 
+                COUNT(DISTINCT p.product_id) as products,
+                COUNT(DISTINCT l.location_id) as locations,
+                COUNT(DISTINCT e.employee_id) as employees,
+                (SELECT COUNT(*) FROM inventory WHERE quantity < 100) as low_stock
+            FROM products p
+            CROSS JOIN locations l
+            CROSS JOIN employees e
+            WHERE p.status = 'ACTIVE'
+                AND e.is_inactive = FALSE
+        """)
+        
+        stats = db.execute(stats_query).fetchone()
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("📦 Active Products", f"{stats.products:,}")
+        with col2:
+            st.metric("🏪 Locations", f"{stats.locations:,}")
+        with col3:
+            st.metric("👨‍💼 Employees", f"{stats.employees:,}")
+        with col4:
+            st.metric("⚠️ Low Stock Items", f"{stats.low_stock:,}")
+    
     except Exception as e:
         st.error(f"❌ Error loading dashboard: {str(e)}")
+        import traceback
+        st.code(traceback.format_exc())
     
     finally:
         db.close()
