@@ -103,7 +103,7 @@ def init_db():
         run_triggers(SQL_DIR / "04_triggers.sql")
 
         run_plain_sql(SQL_DIR / "05_generate_tran_data.sql")
-        # run_plain_sql(SQL_DIR / "06_views.sql")
+        run_plain_sql(SQL_DIR / "06_views.sql")
 
         run_procedures(SQL_DIR / "07_stored_procedures.sql")
 
