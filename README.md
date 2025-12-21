@@ -107,8 +107,8 @@ The system is implemented using MySQL 8.x and is designed following normalizatio
 ---
 
 ## Database ERD Diagram
-![ER Diagram](![z7351126093945_e104d32545c604777267f2d4bcbc200b](https://github.com/user-attachments/assets/f1587689-0164-4b21-bd0a-6b4cb0fa7129))
 
+![ER Diagram](https://github.com/user-attachments/assets/1bd0bafa-42c4-4739-a99a-e7e893f5934a)
 ---
 
 ## Tech Stack
